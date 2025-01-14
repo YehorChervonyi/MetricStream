@@ -1,6 +1,3 @@
-import 'dart:io';
-import 'dart:math';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'client_detail_page.dart';
@@ -33,20 +30,6 @@ class _HomePageState extends State<HomePage> {
       'isOnline': true, // Default offline
     },
   ];
-
-  // Future<bool> _pingClient(String ip) async {
-  //   try {
-  //     final result = await Process.run(
-  //       'ping',
-  //       Platform.isWindows ? ['-n', '1', ip] : ['-c', '5', ip],
-  //     );
-      
-  //     // print(result.stdout);
-  //     return result.exitCode ==0;
-  //   } catch (e) {
-  //     return false;
-  //   }
-  // }
 
   void _showAddClientModal() {
     final TextEditingController ipController = TextEditingController();
@@ -135,7 +118,7 @@ class _HomePageState extends State<HomePage> {
                           'ip': ip,
                           'port': port,
                           'user': name,
-                          // 'isOnline': isOnline,
+                          'isOnline': true,
                         });
                       });
                       Navigator.pop(context);
