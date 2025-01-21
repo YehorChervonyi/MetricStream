@@ -144,10 +144,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   void handleTileClick(Map<String, dynamic> client) {
+    final String clientConnect = "${client['ip']}:${client['port']}";
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ClientDetailPage(client: client),
+        builder: (context) => ClientDetailPage(clientConnect: clientConnect),
       ),
     );
   }
