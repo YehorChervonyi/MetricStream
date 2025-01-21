@@ -2,9 +2,17 @@ from Info import *
 import asyncio
 import websockets
 import json
+import sys
+
+port = 36500
+ip = get_ip_address()
+
+if (len(sys.argv)> 1):
+    port= int(sys.argv[1])
+
 
 print("==========MetricStream Agent==========")
-print("Your UID: " + get_ip_address())
+print("Your IP: " + ip)
 
 # A set to keep track of connected clients
 connected_clients = set()
@@ -28,8 +36,10 @@ async def handle_client(websocket):
 
 async def start_server():
     """Starts the WebSocket server."""
-    server = await websockets.serve(handle_client, "0.0.0.0", 36500)
-    print("WebSocket server started on ws://0.0.0.0:36500")
+    server = await websockets.serve(handle_client, "0.0.0.0", port)
+    print("WebSocket server started on ws://"+ip+":"+str(port))
     await server.wait_closed()  # Keep the server running
+
+
 
 asyncio.run(start_server())
