@@ -20,7 +20,9 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
   late List<FlSpot> cpuData = [];
   late List<FlSpot> ramData = [];
   late List<FlSpot> cpuFreqData = [];
+  late List<FlSpot> ramUsageData = [];
   late double xValue = 0;
+  late  Map<String, dynamic> diskData = {};
   bool isLoading = true;
 
   @override
@@ -59,11 +61,15 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
               cpuData.add(FlSpot(xValue, client['cpu']['persent'] ?? 0.0));
               ramData.add(FlSpot(xValue, client['ram']['persent'] ?? 0.0));
               cpuFreqData.add(FlSpot(xValue, client['cpu']['freq'] ?? 0.0));
+              ramUsageData.add(FlSpot(xValue, (client['ram']['total']/1024/1024/1024).toInt()-(client['ram']['available']/1024/1024/1024).toInt() ?? 0.0));
               xValue += 1;
+              diskData = client['disk_data'] != null ? client['disk_data'] as Map<String, dynamic> : {};
+              
 
               if (cpuData.length > 22) cpuData.removeAt(0);
               if (ramData.length > 22) ramData.removeAt(0);
               if (cpuFreqData.length > 22) cpuFreqData.removeAt(0);
+              if (ramUsageData.length > 22) ramUsageData.removeAt(0);
             });
           } catch (e) {
             Navigator.pop(context);
@@ -134,10 +140,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                     children: [
                       Text(
                         '''
-IP: ${client['ip'] ?? 'Unknown IP'}
-MAC: ${client['mac'] ?? 'Unknown MAC'}
-CPU: ${client['cpu'] != null ? '${client['cpu']['freq']} MHz, ${client['cpu']['persent']}% usage' : 'Unknown CPU'}
-RAM: ${client['ram'] != null ? '${client['ram']['persent']}% used (${client['ram']['available']} / ${client['ram']['total']})' : 'Unknown RAM'}
+Username: ${client['user'] ?? 'Unknown User'}
                         ''',
                         style: const TextStyle(color: Colors.white),
                       ),
@@ -163,6 +166,32 @@ RAM: ${client['ram'] != null ? '${client['ram']['persent']}% used (${client['ram
                       ),
                       const SizedBox(height: 8),
                       Chart(ramData, 0, 100, 25),
+                      const Text(
+                        'RAM Usage:',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                      const SizedBox(height: 8),
+                      Chart(ramUsageData, 0, (client['ram']['total']/1024/1024/1024).toInt(), ((client['ram']['total']/1024/1024/1024).toInt()/5).toInt()),
+                      const SizedBox(height: 16),
+                      Column(
+                      children: diskData.entries.map((entry) { 
+                       return Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                        Text(
+                        "Disk ${entry.key} Usage:",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                          MyPieChart(100.0-entry.value['percentage_used'], entry.value['percentage_used']),
+                          const SizedBox(height: 8),
+                        ],
+                       );
+                        
+                      }).toList(),
+                    ),
                     ],
                   ),
                 ),
