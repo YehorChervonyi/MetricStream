@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:metricstream_app/util/Chart.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -22,7 +24,7 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
   late List<FlSpot> cpuFreqData = [];
   late List<FlSpot> ramUsageData = [];
   late double xValue = 0;
-  late  Map<String, dynamic> diskData = {};
+  late Map<String, dynamic> diskData = {};
   bool isLoading = true;
 
   @override
@@ -108,90 +110,91 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: !isLoading,
           title: isLoading
-              ? Text(
+              ? const Text(
                   "Loading..",
                   style: TextStyle(color: Colors.white),
                 )
               : Text(
                   "IP: ${client['ip'] ?? 'Unknown'} | MAC: ${client['mac'] ?? 'Unknown'}",
-                  style: TextStyle(color: Colors.white),
+                  style: const TextStyle(color: Colors.white),
                 ),
           backgroundColor: const Color.fromRGBO(97, 103, 122, 1),
         ),
         backgroundColor: const Color.fromRGBO(39, 40, 41, 1),
         body: isLoading
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [CircularProgressIndicator()],
+            ? const Center(
+                // mainAxisAlignment: MainAxisAlignment.center,
+                child: (
+                  Center(
+                    child:CircularProgressIndicator(),
+                  )
                 ),
               )
-            : Padding(
-                padding: const EdgeInsets.all(16.0),
+            : Container(
+                padding: const EdgeInsets.all(5.0),
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    children: <Widget>[
                       Text(
                         '''
-Username: ${client['user'] ?? 'Unknown User'}
+                        Username: ${client['user'] ?? 'Unknown User'}
                         ''',
                         style: const TextStyle(color: Colors.white),
                       ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'CPU Percentage:',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-                      const SizedBox(height: 8),
-                      Chart(cpuData, 0, 100, 25),
-                      const Text(
-                        'CPU Frequency:',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-                      const SizedBox(height: 8),
-                      Chart(cpuFreqData, 0, 4400, 1000),
-                      const Text(
-                        'RAM Percentage:',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-                      const SizedBox(height: 8),
-                      Chart(ramData, 0, 100, 25),
-                      const Text(
-                        'RAM Usage:',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-                      const SizedBox(height: 8),
-                      Chart(ramUsageData, 0, (client['ram']['total']/1024/1024/1024).toInt(), ((client['ram']['total']/1024/1024/1024).toInt()/5).toInt()),
-                      const SizedBox(height: 16),
-                      Column(
-                      children: diskData.entries.map((entry) { 
-                       return Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                        Text(
-                        "Disk ${entry.key} Usage:",
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                      // const SizedBox(height: 16),
+                      const Center(
+                        child: Text(
+                          'CPU',
+                          style: TextStyle(
+                              fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
                         ),
-                          MyPieChart(100.0-entry.value['percentage_used'], entry.value['percentage_used']),
-                          const SizedBox(height: 8),
-                        ],
-                       );
-                        
-                      }).toList(),
-                    ),
+                      ),
+                      const SizedBox(height: 8),
+                      Chart(cpuData, 0, 100, 25, "CPU Percentage"),
+                      const SizedBox(height: 8),
+                      Chart(cpuFreqData, 0, 4400, 1000, "CPU Frequency"),
+                      const SizedBox(height: 16),
+                      const Center(
+                        child: Text(
+                          'RAM',
+                          style: TextStyle(
+                              fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Chart(ramData, 0, 100, 25, "RAM Percentage"),
+                      const SizedBox(height: 8),
+                      // Text((client['ram']['total']/1024/1024/1024).round().toString()),
+                      Chart(ramUsageData, 0, (client['ram']['total']/1024/1024/1024).round().toInt(), ((client['ram']['total']/1024/1024/1024).toInt()/5).toInt(), "RAM Usage"),
+                      const SizedBox(height: 16),
+
+                      const Center(
+                        child: Text(
+                          'Disk',
+                          style: TextStyle(
+                              fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ),
+                      Column(
+                        children: diskData.entries.map((entry) { 
+                        return Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.start,
+                          alignment: WrapAlignment.start,
+                          children: [
+                            MyPieChart(100.0-entry.value['percentage_used'], entry.value['percentage_used'], "Disk ${entry.key}"),
+                            const SizedBox(height: 8),
+                          ],
+                        ); 
+                        }).toList(),
+                      ),
                     ],
                   ),
                 ),
