@@ -1,5 +1,3 @@
-import 'dart:html';
-
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 Widget styleTitle(double value, TitleMeta meta){
@@ -12,26 +10,29 @@ Widget styleTitle(double value, TitleMeta meta){
 
 Widget Chart(List<FlSpot> data, double min, double max, double interval){
   return Container(
-    child: SizedBox(
-                height: 200, // Adjust height based on your layout
+
+    child: AspectRatio(
+                // height: 200, // Adjust height based on your layout
+                aspectRatio: 2,
                 child: LineChart(
-                  
-                  LineChartData(
-                    
+                  LineChartData(  
                     minY: min,
                     maxY: max,
-                    
+                    lineTouchData: LineTouchData(enabled: true),
                     lineBarsData: [
                       LineChartBarData(
                         spots: data,
                         preventCurveOverShooting: true,
                         isCurved: true,
-                        barWidth: 2,
-                        // isStrokeCapRound: true,
-                        // isStrokeJoinRound: true,
+                        barWidth: 3,
+                        // color: Colors.blueGrey,
+                        // gradient: LinearGradient(colors: [Colors.deepPurple.withOpacity(0), Colors.deepPurple], stops: [0.1, 0.2]),
+                        isStrokeCapRound: true,
+                        isStrokeJoinRound: true,
                         isStepLineChart: false,
-                        dotData: FlDotData(show: false),
-                        belowBarData: BarAreaData(show: true)
+                        dotData: FlDotData(show: false, ),
+                        // belowBarData: BarAreaData(show: true, gradient: LinearGradient(colors: [Colors.deepPurple.withOpacity(0), Colors.deepPurple.withOpacity(0.3)], stops: [0.1, 0.2]))
+                        
                       )
                     ],
                     titlesData: FlTitlesData(
@@ -87,5 +88,24 @@ Widget Chart(List<FlSpot> data, double min, double max, double interval){
                   
                 ),
               ),
+  );
+}
+
+Widget MyPieChart(double free, double busy){
+  free = (free*10).roundToDouble()/10;
+  busy = (busy*10).roundToDouble()/10;
+  return Column(
+    children: [AspectRatio(aspectRatio: 2, 
+    child: PieChart(
+      PieChartData(
+        pieTouchData: PieTouchData(
+          enabled: false
+          ),
+          sections: [
+            PieChartSectionData(value: free, color: Colors.green.withOpacity(0.7), titleStyle: TextStyle(color: Colors.white), title: "${free} %"), 
+            PieChartSectionData(value: busy, color: Colors.deepOrange, titleStyle: TextStyle(color: Colors.white), title: "${busy} %" )]
+      )
+    ),
+  )],
   );
 }
