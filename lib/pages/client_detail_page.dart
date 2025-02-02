@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:metricstream_app/util/Chart.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -60,10 +58,14 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
             print(parsedData);
             setState(() {
               client = parsedData;
-              cpuData.add(FlSpot(xValue, client['cpu']['persent'] ?? 0.0));
-              ramData.add(FlSpot(xValue, client['ram']['persent'] ?? 0.0));
-              cpuFreqData.add(FlSpot(xValue, client['cpu']['freq'] ?? 0.0));
-              ramUsageData.add(FlSpot(xValue, (client['ram']['total']/1024/1024/1024).toInt()-(client['ram']['available']/1024/1024/1024).toInt() ?? 0.0));
+              cpuData.add(FlSpot(xValue, (client['cpu']['persent'] ?? 0.0).toDouble()));
+              ramData.add(FlSpot(xValue, (client['ram']['persent'] ?? 0.0).toDouble()));
+              cpuFreqData.add(FlSpot(xValue, (client['cpu']['freq']/1000 ?? 0.0).toDouble()));
+              ramUsageData.add(FlSpot(
+                xValue,
+                ((client['ram']['total'] / 1024 / 1024 / 1024).toDouble() - 
+                (client['ram']['available'] / 1024 / 1024 / 1024).toDouble())
+              ));
               xValue += 1;
               diskData = client['disk_data'] != null ? client['disk_data'] as Map<String, dynamic> : {};
               
@@ -143,58 +145,84 @@ class _ClientDetailPageState extends State<ClientDetailPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text(
-                        '''
-                        Username: ${client['user'] ?? 'Unknown User'}
-                        ''',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      // const SizedBox(height: 16),
-                      const Center(
-                        child: Text(
-                          'CPU',
-                          style: TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                      Card(
+                        color: Colors.black.withOpacity(0.2),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'CPU',
+                                style: TextStyle(
+                                    fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                                const SizedBox(height: 8),
+                                Chart(cpuData, 0, 100, 25, "CPU Percentage (%)", "%"),
+                                const SizedBox(height: 8),
+                                Chart(cpuFreqData, 0, client['cpu']['max']/1000, client['cpu']['max']/4000, "CPU Frequency (GHz)", "GHz"),
+                                const SizedBox(height: 16),
+                            ],
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Chart(cpuData, 0, 100, 25, "CPU Percentage"),
-                      const SizedBox(height: 8),
-                      Chart(cpuFreqData, 0, 4400, 1000, "CPU Frequency"),
-                      const SizedBox(height: 16),
-                      const Center(
-                        child: Text(
-                          'RAM',
-                          style: TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                      Card(
+                        color: Colors.black.withOpacity(0.2),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'RAM',
+                                style: TextStyle(
+                                    fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                              const SizedBox(height: 8),
+                              Chart(ramData, 0, 100, 25, "RAM Percentage (%)", "%"),
+                              const SizedBox(height: 8),
+                              // Text((client['ram']['total']/1024/1024/1024).round().toString()),
+                              Chart(ramUsageData, 0, (client['ram']['total']/1024/1024/1024).round().toDouble(), ((client['ram']['total']/1024/1024/1024).toInt()/4).round().toDouble(), "RAM Usage (GB)", "GB"),
+                              const SizedBox(height: 16),
+                              
+                            ],
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Chart(ramData, 0, 100, 25, "RAM Percentage"),
-                      const SizedBox(height: 8),
-                      // Text((client['ram']['total']/1024/1024/1024).round().toString()),
-                      Chart(ramUsageData, 0, (client['ram']['total']/1024/1024/1024).round().toInt(), ((client['ram']['total']/1024/1024/1024).toInt()/5).toInt(), "RAM Usage"),
-                      const SizedBox(height: 16),
 
-                      const Center(
-                        child: Text(
-                          'Disk',
-                          style: TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                      Card(
+                        color: Colors.black.withOpacity(0.2),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Disk',
+                                style: TextStyle(
+                                    fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
+                              Column(
+                                children: diskData.entries.map((entry) { 
+                                return Wrap(
+                                  crossAxisAlignment: WrapCrossAlignment.start,
+                                  alignment: WrapAlignment.start,
+                                  children: [
+                                    MyPieChart(100.0-entry.value['percentage_used'], entry.value['percentage_used'], "Disk ${entry.key}"),
+                                    const SizedBox(height: 8),
+                                  ],
+                                ); 
+                                }).toList(),
+                              ),
+                              
+                            ],
+                          ),
                         ),
                       ),
-                      Column(
-                        children: diskData.entries.map((entry) { 
-                        return Wrap(
-                          crossAxisAlignment: WrapCrossAlignment.start,
-                          alignment: WrapAlignment.start,
-                          children: [
-                            MyPieChart(100.0-entry.value['percentage_used'], entry.value['percentage_used'], "Disk ${entry.key}"),
-                            const SizedBox(height: 8),
-                          ],
-                        ); 
-                        }).toList(),
-                      ),
+
                     ],
                   ),
                 ),
