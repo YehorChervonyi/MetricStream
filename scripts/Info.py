@@ -25,6 +25,7 @@ def getInfo():
     data['cpu']={
         'freq': psutil.cpu_freq().current,
         'persent':psutil.cpu_percent(),
+        'max': psutil.cpu_freq().max
     }
 
     data['ram']={
