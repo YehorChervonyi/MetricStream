@@ -8,7 +8,7 @@ Widget styleTitle(double value, TitleMeta meta){
 }
 
 
-Widget Chart(List<FlSpot> data, double min, double max, double interval, String name){
+Widget Chart(List<FlSpot> data, double min, double max, double interval, String name, String char){
   return Card(
     elevation: 5,
     color: Colors.black.withOpacity(0.4),
@@ -31,20 +31,38 @@ Widget Chart(List<FlSpot> data, double min, double max, double interval, String 
               LineChartData(  
                 minY: min,
                 maxY: max,
-                lineTouchData: LineTouchData(enabled: true),
+
+                lineTouchData: LineTouchData(
+                  touchTooltipData: LineTouchTooltipData(
+                    // getTooltipColor: (touchedSpot) => Colors.white,
+                    getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                      return touchedSpots.map((spot) {
+                        return LineTooltipItem(
+                          ' ${(spot.y*10).toInt().toDouble()/10} ${char}', // Customize text format
+                          TextStyle(
+                            color: Colors.white, // Change text color here
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        );
+                      }).toList();
+                    },
+                    
+                  )
+                ),
                 lineBarsData: [
                   LineChartBarData(
                     spots: data,
                     preventCurveOverShooting: true,
                     isCurved: true,
                     barWidth: 3,
-                    // color: Colors.blueGrey,
-                    // gradient: LinearGradient(colors: [Colors.deepPurple.withOpacity(0), Colors.deepPurple], stops: [0.1, 0.2]),
-                    isStrokeCapRound: true,
-                    isStrokeJoinRound: true,
-                    isStepLineChart: false,
+                    // color: Colors.white,
+                    gradient: LinearGradient(colors: [Colors.deepPurple.withOpacity(0), Colors.deepPurple], stops: [0.0, 0.1]),
+                    // isStrokeCapRound: true,
+                    // isStrokeJoinRound: true,
+                    // isStepLineChart: false,
                     dotData: FlDotData(show: false, ),
-                    // belowBarData: BarAreaData(show: true, gradient: LinearGradient(colors: [Colors.deepPurple.withOpacity(0), Colors.deepPurple.withOpacity(0.3)], stops: [0.1, 0.2]))
+                    belowBarData: BarAreaData(show: true, gradient: LinearGradient(colors: [Colors.deepPurple.withOpacity(0), Colors.deepPurple.withOpacity(0.3)], stops: [0.0, 0.1]))
                     
                   )
                 ],
@@ -54,7 +72,7 @@ Widget Chart(List<FlSpot> data, double min, double max, double interval, String 
                       showTitles: true,
                       reservedSize: 25,
                       interval: interval,
-                      getTitlesWidget: styleTitle                    
+                      getTitlesWidget: styleTitle,             
                     ),
                   ),
                   rightTitles: AxisTitles(
@@ -69,8 +87,8 @@ Widget Chart(List<FlSpot> data, double min, double max, double interval, String 
                   ),
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: styleTitle
+                      showTitles: false,
+                      getTitlesWidget: styleTitle,
                     )
                   )
                 ),
@@ -131,8 +149,8 @@ Widget MyPieChart(double free, double busy, String name){
               enabled: false
               ),
               sections: [
-                PieChartSectionData(value: free, color: Colors.green.withOpacity(0.7), titleStyle: TextStyle(color: Colors.white), title: "${free} %", titlePositionPercentageOffset: -0.75), 
-                PieChartSectionData(value: busy, color: Colors.deepOrange, titleStyle: TextStyle(color: Colors.white), title: "${busy} %", titlePositionPercentageOffset: -0.75 )]
+                PieChartSectionData(value: free, color: Color(0xFF004D40), titleStyle: TextStyle(color: Colors.white), title: "${free} %", titlePositionPercentageOffset: -0.45), 
+                PieChartSectionData(value: busy, color: Color(0xFF800020), titleStyle: TextStyle(color: Colors.white), title: "${busy} %", titlePositionPercentageOffset: -0.45 )]
           )
         ),
         
