@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:lottie/lottie.dart';
 import 'client_detail_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -7,29 +10,44 @@ class HomePage extends StatefulWidget {
 
   @override
   State<HomePage> createState() => _HomePageState();
+  
 }
 
+
+
+
 class _HomePageState extends State<HomePage> {
-  final List<Map<String, dynamic>> _clients = [
-    {
-      'ip': '192.168.0.101',
-      'port': '8080',
-      'user': 'Client 1',
-      'isOnline': false, // Default offline
-    },
-    {
-      'ip': '192.168.0.103',
-      'port': '7070',
-      'user': 'Client 2',
-      'isOnline': false, // Default offline
-    },
-    {
-      'ip': '127.0.0.1',
-      'port': '36500',
-      'user': 'Local',
-      'isOnline': true, // Default offline
-    },
-  ];
+  late SharedPreferences pref;
+  List<Map<String, dynamic>> _clients = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _initPreferences();
+  }
+
+  // Load preferences asynchronously
+  Future<void> _initPreferences() async {
+    pref = await SharedPreferences.getInstance();
+    _loadClients();
+  }
+
+  // Load _clients list from SharedPreferences
+  void _loadClients() {
+    String? clientsJson = pref.getString('clients');
+    if (clientsJson != null) {
+      List<dynamic> decoded = jsonDecode(clientsJson);
+      setState(() {
+        _clients = List<Map<String, dynamic>>.from(decoded);
+      });
+    }
+  }
+
+  // Save _clients list to SharedPreferences
+  void _saveClients() {
+    String clientsJson = jsonEncode(_clients);
+    pref.setString('clients', clientsJson);
+  }
 
   void _showAddClientModal() {
     final TextEditingController ipController = TextEditingController();
@@ -69,7 +87,7 @@ class _HomePageState extends State<HomePage> {
                       borderSide: BorderSide(color: Colors.white70),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.blue),
+                      borderSide: BorderSide(color: Colors.deepPurple),
                     ),
                   ),
                 ),
@@ -84,7 +102,7 @@ class _HomePageState extends State<HomePage> {
                       borderSide: BorderSide(color: Colors.white70),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.blue),
+                      borderSide: BorderSide(color: Colors.deepPurple),
                     ),
                   ),
                 ),
@@ -99,7 +117,7 @@ class _HomePageState extends State<HomePage> {
                       borderSide: BorderSide(color: Colors.white70),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.blue),
+                      borderSide: BorderSide(color: Colors.deepPurple),
                     ),
                   ),
                   keyboardType: TextInputType.number,
@@ -112,14 +130,13 @@ class _HomePageState extends State<HomePage> {
                     final String name = nameController.text.trim();
 
                     if (ip.isNotEmpty && port.isNotEmpty && name.isNotEmpty) {
-                      // bool isOnline = await _pingClient(ip);
                       setState(() {
                         _clients.add({
                           'ip': ip,
                           'port': port,
                           'user': name,
-                          'isOnline': true,
                         });
+                        _saveClients();
                       });
                       Navigator.pop(context);
                     } else {
@@ -143,7 +160,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void handleTileClick(Map<String, dynamic> client) {
+  void handleTileClick(BuildContext context, Map<String, dynamic> client) {
     final String clientConnect = "${client['ip']}:${client['port']}";
     Navigator.push(
       context,
@@ -166,7 +183,12 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-      body: ListView.builder(
+      body: _clients.isEmpty ? 
+      const Center(
+        child: Text("Add first instance to see metrics", style: TextStyle(color: Colors.white),) ,
+      )
+      :
+      ListView.builder(
         itemCount: _clients.length,
         itemBuilder: (context, index) {
           final client = _clients[index];
@@ -193,18 +215,19 @@ class _HomePageState extends State<HomePage> {
                   '${client['ip']} : ${client['port']}',
                   style: const TextStyle(color: Colors.white70),
                 ),
-                onTap: () => handleTileClick(client),
+                onTap: () => handleTileClick(context, client),
                 trailing: SizedBox(
                   width: 50,
                   height: 50,
-                  child: Lottie.asset(
-                    client['isOnline'] ? 'assets/onn.json' : 'assets/off.json',
-                    fit: BoxFit.cover,
-                  ),
+                  child: IconButton(onPressed: () {
+                    setState(() {
+                    _clients.removeAt(index);
+                    _saveClients();
+                    });
+                  }, icon: const Icon(Icons.delete, color: Colors.white,)))
                 ),
               ),
-            ),
-          );
+            );
         },
       ),
       floatingActionButton: FloatingActionButton(
